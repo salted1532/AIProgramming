@@ -67,3 +67,152 @@ Few-shot 학습은 모델이 주어진 몇 가지 예시를 통해 새로운 작
 - **RAG 기술 적용**: RAG 기술을 사용하여 할루시네이션 문제를 해결. RAG는 외부에서 최신 정보를 검색하여 생성된 답변에 포함시키는 방식으로, 더 정확하고 신뢰성 있는 답변을 제공.
 - **Loader 사용**: RAG 방식에서 AI 모델에게 학습시킬 데이터를 입력하기 위해 문서 파일을 Loader를 통해 학습시켜야 함.
 
+# **AI 기반 챗봇 시스템**
+이 프로젝트는 **OpenAI API**와 **Flask**를 이용하여 학기 동안 배운 내용을 바탕으로 만든 AI 기반 챗봇 시스템입니다. 이번 프로젝트를 통해 **LLM 모델**의 작동 원리, **RAG (Retrieval-Augmented Generation)** 기술, 그리고 **Flask 웹 프레임워크**를 활용한 실습을 통해 AI 모델을 웹 애플리케이션에 통합하는 방법을 배웠습니다.
+
+## **프로젝트 개요**
+이 챗봇 시스템은 사용자가 질문을 입력하면 OpenAI API를 통해 AI 모델을 호출하고, 그에 맞는 답변을 출력하는 웹 애플리케이션입니다. 시스템은 다음과 같은 기능을 제공합니다:
+
+- **사용자 입력 처리**: 사용자가 입력한 질문을 Flask 서버로 전송합니다.
+- **OpenAI API 호출**: Flask 서버가 OpenAI API를 호출하여 해당 질문에 대한 답변을 생성합니다.
+- **답변 출력**: 생성된 답변을 사용자에게 웹 페이지에서 실시간으로 출력합니다.
+
+## **기술 스택**
+- **OpenAI API**: GPT-3와 GPT-4를 기반으로 한 LLM 모델을 이용하여 자연어 처리 및 응답 생성.
+- **Flask**: Python으로 작성된 웹 애플리케이션 프레임워크로, 사용자와 AI 모델 간의 상호작용을 처리.
+- **HTML/CSS/JavaScript**: 웹 인터페이스를 디자인하고, 사용자와의 실시간 상호작용을 처리.
+- **RAG (Retrieval-Augmented Generation)**: 외부 데이터를 검색하여 AI 모델의 답변 정확도를 높이는 기술.
+- **Python**: Flask 서버와 OpenAI API를 호출하기 위한 주요 프로그래밍 언어.
+
+## **프로젝트 목적**
+이 프로젝트의 주요 목적은 **OpenAI API**와 **Flask**를 사용하여 실시간으로 AI 모델을 활용한 질문-응답 시스템을 구축하는 것입니다. 이를 통해 **RAG 기술**을 적용하여 더 정확하고 신뢰할 수 있는 답변을 생성하며, 사용자 경험을 향상시킬 수 있었습니다.
+
+## **주요 학습 내용**
+- **OpenAI API 활용**: OpenAI API를 사용하여 GPT 모델을 호출하고, 이를 통해 자연어 처리를 구현하는 방법을 배웠습니다.
+- **Flask 웹 개발**: Flask를 사용하여 간단한 웹 애플리케이션을 구축하고, 이를 통해 OpenAI API와 상호작용하는 방법을 실습했습니다.
+- **할루시네이션 문제 해결**: 모델의 할루시네이션 문제를 이해하고, **Zero-shot**과 **Few-shot** 학습을 통해 이를 해결하는 방법을 배웠습니다.
+- **RAG 기술**: 외부 데이터를 검색하여 더 정확한 답변을 생성하는 **Retrieval-Augmented Generation** 기술을 적용했습니다.
+- **웹 애플리케이션 구축**: HTML, CSS, JavaScript를 사용하여 사용자 인터페이스를 디자인하고, 이를 Flask 서버와 연결하여 실시간 상호작용이 가능하도록 구현했습니다.
+
+## **프로젝트 구성**
+1. **`app.py`**: Flask 애플리케이션의 메인 파일로, 서버를 실행하고 OpenAI API와의 통신을 처리합니다.
+2. **`templates/index.html`**: 사용자 인터페이스를 위한 HTML 파일로, 사용자가 질문을 입력하고 답변을 받을 수 있는 페이지를 제공합니다.
+3. **`static/styles.css`**: 웹 페이지 디자인을 위한 CSS 파일입니다.
+4. **`static/script.js`**: 사용자 인터페이스와 Flask 서버 간의 상호작용을 처리하는 JavaScript 파일입니다.
+
+## **실행 방법**
+1. 필요한 Python 라이브러리 설치:
+    ```bash
+    pip install openai flask
+    ```
+
+2. OpenAI API 키를 설정:
+    - OpenAI의 [API 키](https://platform.openai.com/)를 발급받고, 이를 환경 변수에 설정합니다.
+
+3. Flask 애플리케이션 실행:
+    ```bash
+    python app.py
+    ```
+
+4. 웹 브라우저에서 `http://127.0.0.1:5000/`를 열어 챗봇 시스템을 사용합니다.
+
+## **Flask 애플리케이션 코드 (app.py)**
+
+```python
+from flask import Flask, render_template, request, jsonify
+import os
+from dotenv import load_dotenv
+from langchain.vectorstores import Chroma
+from langchain.embeddings.openai import OpenAIEmbeddings
+from openai.types.chat import ChatCompletionMessageParam
+import openai
+
+# 환경 변수 로드
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+app = Flask(__name__)
+
+class DocumentQABot:
+    def __init__(self, model_name="gpt-3.5-turbo", persist_directory='chroma_store'):
+        self.model_name = model_name
+        self.embeddings = OpenAIEmbeddings()
+        self.vectorstore = Chroma(
+            persist_directory=persist_directory,
+            embedding_function=self.embeddings
+        )
+
+    def build_prompt(self, query, context):
+        system_message: ChatCompletionMessageParam = {
+            "role": "system",
+            "content": """다음 제공된 컨텍스트만을 기반으로 질문에 답변해주세요.
+            컨텍스트에 충분한 정보가 없다면 '확실하지 않습니다'라고 말한 후 추측해주세요.
+            답변은 읽기 쉽게 단락으로 나누어 주세요."""
+        }
+        
+        user_message: ChatCompletionMessageParam = {
+            "role": "user",
+            "content": f"질문: {query}\n\n제공된 컨텍스트:\n{context}"
+        }
+        
+        return [system_message, user_message]
+
+    def get_response(self, query, context):
+        try:
+            response = openai.chat.completions.create(
+                model=self.model_name,
+                messages=self.build_prompt(query, context)
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"오류가 발생했습니다: {str(e)}"
+
+    def search_documents(self, query, k=5):
+        results = self.vectorstore.similarity_search(
+            query=query,
+            k=k
+        )
+        return [doc.page_content for doc in results]
+
+# 봇 인스턴스 생성
+bot = DocumentQABot()
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/ask', methods=['POST'])
+def ask():
+    data = request.json
+    query = data.get('question', '')
+    
+    if not query:
+        return jsonify({'error': '질문을 입력해주세요.'})
+
+    # 문서 검색
+    relevant_docs = bot.search_documents(query)
+    
+    if not relevant_docs:
+        return jsonify({'answer': '관련 문서를 찾을 수 없습니다.'})
+
+    # 답변 생성
+    context = " ".join(relevant_docs)
+    response = bot.get_response(query, context)
+    
+    return jsonify({'answer': response})
+
+if __name__ == '__main__':
+    app.run(debug=True) 
+```
+
+## **프로젝트 결과**
+이 프로젝트는 **LLM 모델**을 웹 애플리케이션에 통합하여 실시간으로 질문을 받고 답변을 생성하는 시스템을 성공적으로 구현했습니다. 또한 **할루시네이션** 문제를 해결하기 위해 **Zero-shot** 및 **Few-shot** 방법을 적용하고, **RAG** 기술을 사용하여 답변의 정확도를 높였습니다.
+
+## **향후 개선 사항**
+- **사용자 데이터 저장**: 사용자의 질문과 답변을 저장하여 모델의 성능을 개선할 수 있는 피드백 시스템을 구축할 예정입니다.
+- **멀티 언어 지원**: 다양한 언어로 질문을 처리할 수 있는 다국어 지원을 추가할 계획입니다.
+- **UI/UX 개선**: 사용자 경험을 향상시키기 위해 웹 인터페이스를 개선하고, 더 직관적인 디자인을 제공할 예정입니다.
+
+---
+
+이 프로젝트는 **AI 모델**과 **웹 개발**을 결합하여 실제 문제를 해결하는 방식으로, 학기 동안 배운 내용을 실습하고 적용하는 기회를 제공했습니다. Flask와 OpenAI API를 사용하여 실제로 동작하는 챗봇 시스템을 구축하면서, AI 기술을 실용적인 웹 애플리케이션으로 구현하는 방법을 배우게 되었습니다.
