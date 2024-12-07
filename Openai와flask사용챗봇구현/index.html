@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Document QA Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chat-history {
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: 20%;
+        }
+        .bot-message {
+            background-color: #f5f5f5;
+            margin-right: 20%;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1976d2;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Document QA Chatbot</h1>
+        <div class="chat-history" id="chatHistory"></div>
+        <div class="input-container">
+            <input type="text" id="questionInput" placeholder="질문을 입력하세요...">
+            <button onclick="askQuestion()">전송</button>
+        </div>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chatHistory');
+        const questionInput = document.getElementById('questionInput');
+
+        questionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                askQuestion();
+            }
+        });
+
+        async function askQuestion() {
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            // 사용자 메시지 추가
+            addMessage(question, 'user');
+            questionInput.value = '';
+
+            // 로딩 메시지 추가
+            const loadingDiv = addMessage('답변을 생성중입니다...', 'bot loading');
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question }),
+                });
+
+                const data = await response.json();
+                
+                // 로딩 메시지 제거
+                loadingDiv.remove();
+                
+                // 봇 답변 추가
+                addMessage(data.answer, 'bot');
+            } catch (error) {
+                loadingDiv.remove();
+                addMessage('오류가 발생했습니다. 다시 시도해주세요.', 'bot');
+            }
+        }
+
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.textContent = text;
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return messageDiv;
+        }
+    </script>
+</body>
+</html> 
